@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Comment\CommentStoreRequest;
 use App\Models\Task;
 use App\Services\CommentService;
+use App\Services\TaskService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -22,9 +23,12 @@ class CommentController extends Controller
      * Constructor - Service Injection
      *
      * @param CommentService $commentService
+     * @param TaskService $taskService
      */
-    public function __construct(private CommentService $commentService)
-    {
+    public function __construct(
+        private CommentService $commentService,
+        private TaskService $taskService
+    ) {
         parent::__construct();
     }
 
@@ -38,6 +42,11 @@ class CommentController extends Controller
     public function index(Request $request, Task $task): JsonResponse
     {
         try {
+            // Check if user can access this task
+            if (!$this->taskService->canUserAccessTask($request->user(), $task)) {
+                return $this->forbiddenResponse(__('Access denied to this task.'));
+            }
+
             $comments = $this->commentService->getTaskComments($task);
 
             return $this->successfulResponse(
@@ -71,6 +80,11 @@ class CommentController extends Controller
     public function store(CommentStoreRequest $request, Task $task): JsonResponse
     {
         try {
+            // Check if user can access this task
+            if (!$this->taskService->canUserAccessTask($request->user(), $task)) {
+                return $this->forbiddenResponse(__('Access denied to this task.'));
+            }
+
             $commentData = CreateCommentData::fromRequest(
                 $request->validated(),
                 $request->user()->id

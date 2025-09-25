@@ -68,17 +68,6 @@ class ProjectService
     }
 
     /**
-     * Get projects created by user
-     *
-     * @param User $user
-     * @return Collection<int, Project>
-     */
-    public function getUserProjects(User $user): Collection
-    {
-        return $user->projects()->with('tasks')->get();
-    }
-
-    /**
      * Find project by ID
      *
      * @param int $id
@@ -182,21 +171,6 @@ class ProjectService
             'high_priority_tasks' => $tasks->where('priority', 'high')->count(),
             'urgent_tasks' => $tasks->where('priority', 'urgent')->count(),
         ];
-    }
-
-    /**
-     * Search projects by name or description
-     *
-     * @param string $query
-     * @param int $limit
-     * @return Collection<int, Project>
-     */
-    public function searchProjects(string $query, int $limit = 10): Collection
-    {
-        return Project::where('title', 'like', "%{$query}%")
-            ->orWhere('description', 'like', "%{$query}%")
-            ->limit($limit)
-            ->get();
     }
 
     /**

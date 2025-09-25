@@ -85,21 +85,8 @@ class ProjectServiceTest extends TestCase
         $this->assertEquals('Searchable Project', $results->first()->title);
     }
 
-    public function test_get_user_projects()
-    {
-        $userProjects = Project::factory(3)->create([
-            'created_by' => $this->user->id
-        ]);
-
-        Project::factory(2)->create([
-            'created_by' => $this->admin->id
-        ]);
-
-        $results = $this->projectService->getUserProjects($this->user);
-
-        $this->assertEquals(3, $results->count());
-        $this->assertEquals($this->user->id, $results->first()->created_by);
-    }
+    // Test removed - getUserProjects method was unused and removed from service
+    // public function test_get_user_projects()
 
     public function test_find_project_returns_project_with_relations()
     {
@@ -232,28 +219,6 @@ class ProjectServiceTest extends TestCase
         $this->assertFalse($result);
     }
 
-    public function test_search_projects()
-    {
-        Project::factory()->create([
-            'title' => 'Laravel Project',
-            'description' => 'A Laravel-based project',
-            'created_by' => $this->admin->id
-        ]);
-
-        Project::factory()->create([
-            'title' => 'Vue.js App',
-            'description' => 'A Vue application with Laravel backend',
-            'created_by' => $this->admin->id
-        ]);
-
-        Project::factory()->create([
-            'title' => 'React App',
-            'description' => 'A React application',
-            'created_by' => $this->admin->id
-        ]);
-
-        $results = $this->projectService->searchProjects('Laravel');
-
-        $this->assertEquals(2, $results->count());
-    }
+    // Test removed - searchProjects method was unused and removed from service
+    // public function test_search_projects()
 }

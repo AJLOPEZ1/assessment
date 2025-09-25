@@ -217,14 +217,10 @@ class CommentTest extends TestCase
         $response = $this->getJson("/api/tasks/{$this->task->id}/comments");
 
         $response->assertStatus(200)
-            ->assertJsonFragment([
-                'body' => 'Test comment with user info',
-                'user' => [
-                    'id' => $this->user->id,
-                    'name' => $this->user->name,
-                    'email' => $this->user->email
-                ]
-            ]);
+            ->assertJsonPath('data.comments.0.body', 'Test comment with user info')
+            ->assertJsonPath('data.comments.0.user.id', $this->user->id)
+            ->assertJsonPath('data.comments.0.user.name', $this->user->name)
+            ->assertJsonPath('data.comments.0.user.email', $this->user->email);
     }
 
     public function test_admin_can_access_all_task_comments()

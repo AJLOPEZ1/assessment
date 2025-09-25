@@ -11,7 +11,6 @@ use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
 use App\Notifications\TaskAssignedNotification;
-use App\Services\TaskAssignmentService;
 use App\Services\TaskService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -28,11 +27,9 @@ class TaskController extends Controller
      * Constructor - Service Injection
      *
      * @param TaskService $taskService
-     * @param TaskAssignmentService $taskAssignmentService
      */
     public function __construct(
-        private TaskService $taskService,
-        private TaskAssignmentService $taskAssignmentService
+        private TaskService $taskService
     ) {
         parent::__construct();
     }

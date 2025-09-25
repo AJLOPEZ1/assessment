@@ -24,42 +24,6 @@ class UserService
     }
 
     /**
-     * Get all users with optional filtering and pagination
-     *
-     * @param array<string, mixed> $filters
-     * @return Collection<int, User>
-     */
-    public function getAllUsers(array $filters = []): Collection
-    {
-        $query = User::query();
-
-        if (!empty($filters['search'])) {
-            $search = $filters['search'];
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
-            });
-        }
-
-        if (!empty($filters['role'])) {
-            $query->where('role', $filters['role']);
-        }
-
-        return $query->get();
-    }
-
-    /**
-     * Find user by ID
-     *
-     * @param int $id
-     * @return User|null
-     */
-    public function findUser(int $id): ?User
-    {
-        return User::find($id);
-    }
-
-    /**
      * Find user by email
      *
      * @param string $email
@@ -112,40 +76,5 @@ class UserService
     public function revokeAllTokens(User $user): void
     {
         $user->tokens()->delete();
-    }
-
-    /**
-     * Update user information
-     *
-     * @param User $user
-     * @param array<string, mixed> $data
-     * @return bool
-     */
-    public function updateUser(User $user, array $data): bool
-    {
-        return $user->update($data);
-    }
-
-    /**
-     * Delete user
-     *
-     * @param User $user
-     * @return bool
-     */
-    public function deleteUser(User $user): bool
-    {
-        return $user->delete();
-    }
-
-    /**
-     * Check if user has specific role
-     *
-     * @param User $user
-     * @param string $role
-     * @return bool
-     */
-    public function hasRole(User $user, string $role): bool
-    {
-        return $user->role === $role;
     }
 }

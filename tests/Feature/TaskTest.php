@@ -49,15 +49,17 @@ class TaskTest extends TestCase
                 'success',
                 'message',
                 'data' => [
-                    'id',
-                    'title',
-                    'description',
-                    'status',
-                    'due_date',
-                    'project_id',
-                    'assigned_to',
-                    'created_at',
-                    'updated_at'
+                    'task' => [
+                        'id',
+                        'title',
+                        'description',
+                        'status',
+                        'due_date',
+                        'project_id',
+                        'assigned_to',
+                        'created_at',
+                        'updated_at'
+                    ]
                 ]
             ]);
 
@@ -100,16 +102,18 @@ class TaskTest extends TestCase
                 'success',
                 'message',
                 'data' => [
-                    '*' => [
-                        'id',
-                        'title',
-                        'description',
-                        'status',
-                        'due_date',
-                        'project_id',
-                        'assigned_to',
-                        'created_at',
-                        'updated_at'
+                    'tasks' => [
+                        '*' => [
+                            'id',
+                            'title',
+                            'description',
+                            'status',
+                            'due_date',
+                            'project_id',
+                            'assigned_to',
+                            'created_at',
+                            'updated_at'
+                        ]
                     ]
                 ]
             ]);
@@ -131,18 +135,20 @@ class TaskTest extends TestCase
                 'success',
                 'message',
                 'data' => [
-                    'id',
-                    'title',
-                    'description',
-                    'status',
-                    'due_date',
-                    'project_id',
-                    'assigned_to',
-                    'project',
-                    'assigned_user',
-                    'comments',
-                    'created_at',
-                    'updated_at'
+                    'task' => [
+                        'id',
+                        'title',
+                        'description',
+                        'status',
+                        'due_date',
+                        'project_id',
+                        'assigned_to',
+                        'project',
+                        'assigned_user',
+                        'comments',
+                        'created_at',
+                        'updated_at'
+                    ]
                 ]
             ]);
     }
@@ -158,7 +164,7 @@ class TaskTest extends TestCase
 
         $updateData = [
             'title' => 'Updated Task Title',
-            'status' => 'in_progress',
+            'status' => 'in-progress',
             'description' => 'Updated description'
         ];
 
@@ -169,25 +175,32 @@ class TaskTest extends TestCase
                 'success',
                 'message',
                 'data' => [
-                    'id',
-                    'title',
-                    'description',
-                    'status'
+                    'task' => [
+                        'id',
+                        'title',
+                        'description',
+                        'status'
+                    ]
                 ]
             ]);
 
         $this->assertDatabaseHas('tasks', [
             'id' => $task->id,
             'title' => 'Updated Task Title',
-            'status' => 'in_progress',
+            'status' => 'in-progress',
             'description' => 'Updated description'
         ]);
     }
 
     public function test_manager_can_delete_task()
     {
+        // Create a project that the manager created
+        $managerProject = Project::factory()->create([
+            'created_by' => $this->manager->id
+        ]);
+        
         $task = Task::factory()->create([
-            'project_id' => $this->project->id,
+            'project_id' => $managerProject->id,
             'assigned_to' => $this->user->id
         ]);
 
