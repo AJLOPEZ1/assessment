@@ -74,6 +74,39 @@ class Controller extends BaseController
     }
 
     /**
+     * Return paginated response from Laravel Paginator
+     *
+     * @param mixed $paginator Laravel Paginator instance
+     * @param string $message
+     * @param bool $cached
+     * @return JsonResponse
+     */
+    protected function paginatedResponse(
+        mixed $paginator,
+        string $message = 'Request successful',
+        bool $cached = false
+    ): JsonResponse {
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'data' => $paginator->items(),
+            'pagination' => [
+                'current_page' => $paginator->currentPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
+                'total_pages' => $paginator->lastPage(),
+                'has_next_page' => $paginator->hasMorePages(),
+                'has_previous_page' => $paginator->currentPage() > 1,
+                'from' => $paginator->firstItem(),
+                'to' => $paginator->lastItem(),
+            ],
+            'timestamp' => now()->format('Y-m-d, H:i:s'),
+            'execution_time' => round((microtime(true) - $this->executionStartTime) * 1000, 2) . ' ms',
+            'cached' => $cached
+        ]);
+    }
+
+    /**
      * Return paginated response
      *
      * @param mixed $data

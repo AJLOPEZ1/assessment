@@ -12,7 +12,7 @@ class CreateCommentData extends Data
 {
     public function __construct(
         #[Required, StringType, Max(1000)]
-        public string $content,
+        public string $body,
 
         #[Required, Exists('tasks', 'id')]
         public int $task_id,
@@ -26,13 +26,14 @@ class CreateCommentData extends Data
      * Create a new instance from a Form Request
      *
      * @param array<string, mixed> $data
+     * @param int $userId
      * @return static
      */
     public static function fromRequest(array $data, int $userId): static
     {
         return new static(
-            content: $data['content'],
-            task_id: $data['task_id'],
+            body: $data['body'],
+            task_id: $data['task_id'] ?? 0,
             user_id: $userId
         );
     }
@@ -45,7 +46,7 @@ class CreateCommentData extends Data
     public function toModelData(): array
     {
         return [
-            'content' => $this->content,
+            'body' => $this->body,
             'task_id' => $this->task_id,
             'user_id' => $this->user_id,
         ];

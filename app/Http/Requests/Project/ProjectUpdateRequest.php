@@ -23,12 +23,12 @@ class ProjectUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => [
+            'title' => [
                 'sometimes',
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('projects', 'name')->ignore($this->route('project')),
+                Rule::unique('projects', 'title')->ignore($this->route('project')),
             ],
             'description' => 'sometimes|nullable|string|max:1000',
         ];
@@ -42,9 +42,9 @@ class ProjectUpdateRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'Project name is required.',
-            'name.unique' => 'A project with this name already exists.',
-            'name.max' => 'Project name must not exceed 255 characters.',
+            'title.required' => 'Project title is required.',
+            'title.unique' => 'A project with this title already exists.',
+            'title.max' => 'Project title must not exceed 255 characters.',
             'description.max' => 'Project description must not exceed 1000 characters.',
         ];
     }

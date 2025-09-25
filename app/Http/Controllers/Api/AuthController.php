@@ -19,6 +19,15 @@ use Illuminate\Support\Facades\Log;
 class AuthController extends Controller
 {
     /**
+     * Constructor - Service Injection
+     *
+     * @param UserService $userService
+     */
+    public function __construct(private UserService $userService)
+    {
+        parent::__construct();
+    }
+    /**
      * Register a new user
      *
      * @param RegisterRequest $request
@@ -27,29 +36,34 @@ class AuthController extends Controller
     public function register(RegisterRequest $request): JsonResponse
     {
         try {
-            $userService = app(UserService::class);
             $userData = CreateUserData::fromRequest($request->validated());
-            $user = $userService->createUser($userData);
-            $token = $userService->generateAuthToken($user);
+            $user = $this->userService->createUser($userData);
+            $token = $this->userService->generateAuthToken($user);
 
-            Log::info('User registered successfully', ['user_id' => $user->id, 'email' => $user->email]);
+            Log::info('User registered successfully', [
+                'user_id' => $user->id, 
+                'email' => $user->email
+            ]);
 
             return $this->successfulResponse(
-                message: 'User registered successfully',
                 data: [
                     'user' => $user,
                     'token' => $token,
                 ],
+                message: __('User registered successfully'),
                 statusCode: 201
             );
         } catch (\Exception $e) {
             Log::error('User registration failed', [
                 'email' => $request->email,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTrace(),
+                'timestamp' => now()
             ]);
 
             return $this->errorResponse(
-                message: 'Registration failed. Please try again.',
+                message: __('Registration failed. Please try again.'),
                 statusCode: 500
             );
         }
@@ -64,33 +78,38 @@ class AuthController extends Controller
     public function login(LoginRequest $request): JsonResponse
     {
         try {
-            $userService = app(UserService::class);
             $credentials = $request->validated();
-            $user = $userService->validateCredentials($credentials['email'], $credentials['password']);
+            $user = $this->userService->validateCredentials($credentials['email'], $credentials['password']);
 
             if (!$user) {
-                return $this->unauthorizedResponse('The provided credentials are incorrect.');
+                return $this->unauthorizedResponse(__('The provided credentials are incorrect.'));
             }
 
-            $token = $userService->generateAuthToken($user);
+            $token = $this->userService->generateAuthToken($user);
 
-            Log::info('User logged in successfully', ['user_id' => $user->id, 'email' => $user->email]);
+            Log::info('User logged in successfully', [
+                'user_id' => $user->id, 
+                'email' => $user->email
+            ]);
 
             return $this->successfulResponse(
-                message: 'Login successful',
                 data: [
                     'user' => $user,
                     'token' => $token,
-                ]
+                ],
+                message: __('Login successful')
             );
         } catch (\Exception $e) {
             Log::error('User login failed', [
-                'email' => $request->email,
-                'error' => $e->getMessage()
+                'email' => $request->email ?? 'unknown',
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTrace(),
+                'timestamp' => now()
             ]);
 
             return $this->errorResponse(
-                message: 'Login failed. Please try again.',
+                message: __('Login failed. Please try again.'),
                 statusCode: 500
             );
         }
@@ -105,21 +124,23 @@ class AuthController extends Controller
     public function logout(Request $request): JsonResponse
     {
         try {
-            $userService = app(UserService::class);
             $user = $request->user();
-            $userService->revokeAllTokens($user);
+            $this->userService->revokeAllTokens($user);
 
             Log::info('User logged out successfully', ['user_id' => $user->id]);
 
-            return $this->successfulResponse(message: 'Logout successful');
+            return $this->successfulResponse(message: __('Logout successful'));
         } catch (\Exception $e) {
             Log::error('User logout failed', [
                 'user_id' => $request->user()?->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTrace(),
+                'timestamp' => now()
             ]);
 
             return $this->errorResponse(
-                message: 'Logout failed. Please try again.',
+                message: __('Logout failed. Please try again.'),
                 statusCode: 500
             );
         }
@@ -137,17 +158,20 @@ class AuthController extends Controller
             $user = $request->user()->load(['projects', 'tasks', 'comments']);
 
             return $this->successfulResponse(
-                message: 'User profile retrieved successfully',
-                data: ['user' => $user]
+                data: ['user' => $user],
+                message: __('User profile retrieved successfully')
             );
         } catch (\Exception $e) {
             Log::error('Failed to retrieve user profile', [
                 'user_id' => $request->user()?->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTrace(),
+                'timestamp' => now()
             ]);
 
             return $this->errorResponse(
-                message: 'Failed to retrieve user profile.',
+                message: __('Failed to retrieve user profile.'),
                 statusCode: 500
             );
         }

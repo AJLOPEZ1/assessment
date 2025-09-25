@@ -21,7 +21,7 @@ class ProjectFactory extends Factory
         $endDate = fake()->dateTimeBetween($startDate, '+1 year');
 
         return [
-            'name' => fake()->sentence(3),
+            'title' => fake()->sentence(3),
             'description' => fake()->paragraphs(2, true),
             'start_date' => $startDate,
             'end_date' => $endDate,

@@ -330,7 +330,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"New Project with Laravel Standards\",\n    \"description\": \"Project created with Form Requests, Services, and DTOs\",\n    \"start_date\": \"2025-01-01\",\n    \"end_date\": \"2025-12-31\"\n}"
+							"raw": "{\n    \"title\": \"New Project with Laravel Standards\",\n    \"description\": \"Project created with Form Requests, Services, and DTOs\",\n    \"start_date\": \"2025-01-01\",\n    \"end_date\": \"2025-12-31\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/projects",
@@ -342,7 +342,7 @@
 								"projects"
 							]
 						},
-						"description": "Create project - Now available to all authenticated users. Uses name field (not title). start_date and end_date are optional."
+						"description": "Create project - Now available to all authenticated users. Uses title field. start_date and end_date are optional."
 					}
 				},
 				{
@@ -365,7 +365,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"Minimal Project\",\n    \"description\": \"Only required fields provided\"\n}"
+							"raw": "{\n    \"title\": \"Minimal Project\",\n    \"description\": \"Only required fields provided\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/projects",
@@ -400,7 +400,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"Updated Project Name\",\n    \"description\": \"Updated with new Laravel standards\",\n    \"start_date\": \"2025-02-01\"\n}"
+							"raw": "{\n    \"title\": \"Updated Project Name\",\n    \"description\": \"Updated with new Laravel standards\",\n    \"start_date\": \"2025-02-01\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/projects/{{project_id}}",
@@ -413,7 +413,7 @@
 								"{{project_id}}"
 							]
 						},
-						"description": "Update project - Admin only. Uses 'name' field and standardized validation."
+						"description": "Update project - Admin only. Uses 'title' field and standardized validation."
 					}
 				},
 				{
@@ -555,7 +555,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"title\": \"New Task with Standards\",\n    \"description\": \"Task created with Form Request validation\",\n    \"due_date\": \"2025-02-01\",\n    \"assigned_to\": {{user_id}},\n    \"priority\": \"medium\",\n    \"status\": \"pending\"\n}"
+							"raw": "{\n    \"title\": \"New Task with Standards\",\n    \"description\": \"Task created with Form Request validation\",\n    \"due_date\": \"2025-02-01\",\n    \"assigned_to\": {{user_id}}\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/projects/{{project_id}}/tasks",
@@ -592,7 +592,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"status\": \"in-progress\",\n    \"title\": \"Updated Task Title\",\n    \"priority\": \"high\"\n}"
+							"raw": "{\n    \"status\": \"in_progress\",\n    \"title\": \"Updated Task Title\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/tasks/{{task_id}}",
@@ -765,7 +765,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"\",\n    \"description\": null\n}"
+							"raw": "{\n    \"title\": \"\",\n    \"description\": null\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/projects",
@@ -777,7 +777,7 @@
 								"projects"
 							]
 						},
-						"description": "Test project validation with empty name"
+						"description": "Test project validation with empty title"
 					}
 				},
 				{

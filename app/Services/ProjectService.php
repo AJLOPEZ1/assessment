@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Project service class for handling project-related business logic
@@ -22,7 +23,12 @@ class ProjectService
      */
     public function createProject(CreateProjectData $projectData): Project
     {
-        return Project::create($projectData->toModelData());
+        $project = Project::create($projectData->toModelData());
+        
+        // Clear project cache when new project is created
+        $this->clearProjectsCache();
+        
+        return $project;
     }
 
     /**
@@ -34,26 +40,31 @@ class ProjectService
      */
     public function getAllProjects(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
-        $query = Project::with(['creator', 'tasks']);
+        // Create cache key based on filters and pagination
+        $cacheKey = 'projects_list_' . md5(serialize($filters) . '_' . $perPage);
+        
+        return Cache::remember($cacheKey, 3600, function () use ($filters, $perPage) {
+            $query = Project::with(['creator', 'tasks']);
 
-        if (!empty($filters['search'])) {
-            $search = $filters['search'];
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
-            });
-        }
+            if (!empty($filters['search'])) {
+                $search = $filters['search'];
+                $query->where(function ($q) use ($search) {
+                    $q->where('title', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%");
+                });
+            }
 
-        if (!empty($filters['created_by'])) {
-            $query->where('created_by', $filters['created_by']);
-        }
+            if (!empty($filters['created_by'])) {
+                $query->where('created_by', $filters['created_by']);
+            }
 
-        if (!empty($filters['status'])) {
-            // Assuming we might add status to projects in the future
-            $query->where('status', $filters['status']);
-        }
+            if (!empty($filters['status'])) {
+                // Assuming we might add status to projects in the future
+                $query->where('status', $filters['status']);
+            }
 
-        return $query->orderBy('created_at', 'desc')->paginate($perPage);
+            return $query->orderBy('created_at', 'desc')->paginate($perPage);
+        });
     }
 
     /**
@@ -88,7 +99,14 @@ class ProjectService
     public function updateProject(Project $project, UpdateProjectData $updateData): bool
     {
         $data = $updateData->toModelData();
-        return empty($data) ? true : $project->update($data);
+        $result = empty($data) ? true : $project->update($data);
+        
+        if ($result) {
+            // Clear project cache when project is updated
+            $this->clearProjectsCache();
+        }
+        
+        return $result;
     }
 
     /**
@@ -99,7 +117,14 @@ class ProjectService
      */
     public function deleteProject(Project $project): bool
     {
-        return $project->delete();
+        $result = $project->delete();
+        
+        if ($result) {
+            // Clear project cache when project is deleted
+            $this->clearProjectsCache();
+        }
+        
+        return $result;
     }
 
     /**
@@ -168,9 +193,23 @@ class ProjectService
      */
     public function searchProjects(string $query, int $limit = 10): Collection
     {
-        return Project::where('name', 'like', "%{$query}%")
+        return Project::where('title', 'like', "%{$query}%")
             ->orWhere('description', 'like', "%{$query}%")
             ->limit($limit)
             ->get();
+    }
+
+    /**
+     * Clear all projects related cache
+     *
+     * @return void
+     */
+    private function clearProjectsCache(): void
+    {
+        // Since we can't easily iterate cache keys in file driver,
+        // we'll use cache tags when available or clear specific known keys
+        // For now, we'll clear the cache store completely for simplicity
+        // In production, consider using Redis with cache tags
+        Cache::flush();
     }
 }

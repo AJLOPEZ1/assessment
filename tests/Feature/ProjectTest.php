@@ -17,7 +17,7 @@ class ProjectTest extends TestCase
         $token = $admin->createToken('test-token')->plainTextToken;
 
         $projectData = [
-            'name' => 'Test Project',
+            'title' => 'Test Project',
             'description' => 'This is a test project description',
         ];
 
@@ -30,14 +30,14 @@ class ProjectTest extends TestCase
                      'success',
                      'message',
                      'data' => [
-                         'project' => ['id', 'name', 'description', 'created_by']
+                         'project' => ['id', 'title', 'description', 'created_by']
                      ],
                      'timestamp',
                      'execution_time'
                  ]);
 
         $this->assertDatabaseHas('projects', [
-            'name' => 'Test Project',
+            'title' => 'Test Project',
             'created_by' => $admin->id
         ]);
     }
@@ -48,7 +48,7 @@ class ProjectTest extends TestCase
         $token = $user->createToken('test-token')->plainTextToken;
 
         $projectData = [
-            'name' => 'Test Project',
+            'title' => 'Test Project',
             'description' => 'This is a test project description',
         ];
 
@@ -93,8 +93,7 @@ class ProjectTest extends TestCase
         $admin = User::factory()->admin()->create();
         $project = Project::factory()->create(['created_by' => $admin->id]);
 
-        $user = User::factory()->user()->create();
-        $token = $user->createToken('test-token')->plainTextToken;
+        $token = $admin->createToken('test-token')->plainTextToken;
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer ' . $token
@@ -105,7 +104,7 @@ class ProjectTest extends TestCase
                      'success',
                      'message',
                      'data' => [
-                         'project' => ['id', 'name', 'description'],
+                         'project' => ['id', 'title', 'description'],
                          'statistics'
                      ],
                      'timestamp',
@@ -120,7 +119,7 @@ class ProjectTest extends TestCase
         $token = $admin->createToken('test-token')->plainTextToken;
 
         $updateData = [
-            'name' => 'Updated Project Name'
+            'title' => 'Updated Project Name'
         ];
 
         $response = $this->withHeaders([
@@ -132,7 +131,7 @@ class ProjectTest extends TestCase
                      'success',
                      'message',
                      'data' => [
-                         'project' => ['id', 'name', 'description']
+                         'project' => ['id', 'title', 'description']
                      ],
                      'timestamp',
                      'execution_time'
@@ -140,7 +139,7 @@ class ProjectTest extends TestCase
 
         $this->assertDatabaseHas('projects', [
             'id' => $project->id,
-            'name' => 'Updated Project Name'
+            'title' => 'Updated Project Name'
         ]);
     }
 

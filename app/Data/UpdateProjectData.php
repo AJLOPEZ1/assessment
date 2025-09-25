@@ -11,7 +11,7 @@ class UpdateProjectData extends Data
 {
     public function __construct(
         #[StringType, Max(255)]
-        public ?string $name = null,
+        public ?string $title = null,
 
         #[StringType, Max(1000)]
         public ?string $description = null,
@@ -27,7 +27,7 @@ class UpdateProjectData extends Data
     public static function fromRequest(array $data): static
     {
         return new static(
-            name: $data['name'] ?? null,
+            title: $data['title'] ?? null,
             description: $data['description'] ?? null
         );
     }
@@ -40,7 +40,7 @@ class UpdateProjectData extends Data
     public function toModelData(): array
     {
         return array_filter([
-            'name' => $this->name,
+            'title' => $this->title,
             'description' => $this->description,
         ], fn($value) => $value !== null);
     }

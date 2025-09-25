@@ -22,8 +22,7 @@ class CommentStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'content' => 'required|string|max:1000',
-            'task_id' => 'required|exists:tasks,id',
+            'body' => 'required|string|max:1000',
         ];
     }
 
@@ -35,10 +34,8 @@ class CommentStoreRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'content.required' => 'Comment content is required.',
-            'content.max' => 'Comment must not exceed 1000 characters.',
-            'task_id.required' => 'Task is required.',
-            'task_id.exists' => 'Selected task does not exist.',
+            'body.required' => 'Comment content is required.',
+            'body.max' => 'Comment must not exceed 1000 characters.',
         ];
     }
 }

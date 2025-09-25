@@ -25,11 +25,10 @@ class TaskUpdateRequest extends FormRequest
     {
         return [
             'title' => 'sometimes|required|string|max:255',
-            'description' => 'sometimes|nullable|string|max:1000',
+            'description' => 'sometimes|required|string|max:1000',
             'status' => ['sometimes', 'required', 'string', Rule::in(TaskStatusEnum::values())],
-            'priority' => 'sometimes|required|string|in:low,medium,high,urgent',
-            'assigned_to' => 'sometimes|nullable|exists:users,id',
-            'due_date' => 'sometimes|nullable|date|after:today',
+            'assigned_to' => 'sometimes|required|exists:users,id',
+            'due_date' => 'sometimes|required|date',
         ];
     }
 
@@ -43,14 +42,14 @@ class TaskUpdateRequest extends FormRequest
         return [
             'title.required' => 'Task title is required.',
             'title.max' => 'Task title must not exceed 255 characters.',
+            'description.required' => 'Task description is required.',
             'description.max' => 'Task description must not exceed 1000 characters.',
             'status.required' => 'Task status is required.',
             'status.in' => 'Invalid task status selected.',
-            'priority.required' => 'Task priority is required.',
-            'priority.in' => 'Priority must be one of: low, medium, high, urgent.',
+            'assigned_to.required' => 'Task must be assigned to a user.',
             'assigned_to.exists' => 'Selected user does not exist.',
+            'due_date.required' => 'Due date is required.',
             'due_date.date' => 'Please provide a valid due date.',
-            'due_date.after' => 'Due date must be in the future.',
         ];
     }
 }

@@ -12,7 +12,7 @@ class CreateProjectData extends Data
 {
     public function __construct(
         #[Required, StringType, Max(255)]
-        public string $name,
+        public string $title,
 
         #[StringType, Max(1000)]
         public ?string $description = null,
@@ -31,7 +31,7 @@ class CreateProjectData extends Data
     public static function fromRequest(array $data, int $userId): static
     {
         return new static(
-            name: $data['name'],
+            title: $data['title'],
             description: $data['description'] ?? null,
             created_by: $userId
         );
@@ -45,7 +45,7 @@ class CreateProjectData extends Data
     public function toModelData(): array
     {
         return [
-            'name' => $this->name,
+            'title' => $this->title,
             'description' => $this->description,
             'created_by' => $this->created_by,
         ];

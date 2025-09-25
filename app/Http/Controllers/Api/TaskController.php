@@ -2,105 +2,253 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Data\CreateTaskData;
+use App\Data\UpdateTaskData;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Task\TaskStoreRequest;
+use App\Http\Requests\Task\TaskUpdateRequest;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
 use App\Notifications\TaskAssignedNotification;
+use App\Services\TaskAssignmentService;
+use App\Services\TaskService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
+/**
+ * Task Controller
+ * 
+ * Handles task management including CRUD operations and task-related functionality
+ */
 class TaskController extends Controller
 {
     /**
-     * Display tasks for a specific project.
+     * Constructor - Service Injection
+     *
+     * @param TaskService $taskService
+     * @param TaskAssignmentService $taskAssignmentService
      */
-    public function projectTasks(Project $project)
-    {
-        $tasks = $project->tasks()->with(['assignedUser', 'comments'])->get();
+    public function __construct(
+        private TaskService $taskService,
+        private TaskAssignmentService $taskAssignmentService
+    ) {
+        parent::__construct();
+    }
 
-        return response()->json([
-            'tasks' => $tasks,
-        ]);
+    /**
+     * Display tasks for a specific project with search and filtering.
+     *
+     * @param Request $request
+     * @param Project $project
+     * @return JsonResponse
+     */
+    public function projectTasks(Request $request, Project $project): JsonResponse
+    {
+        try {
+            $filters = [
+                'status' => $request->get('status'),
+                'assigned_to' => $request->get('assigned_to'),
+                'search' => $request->get('search'),
+            ];
+
+            $tasks = $this->taskService->getProjectTasks($project, $filters);
+
+            return $this->successfulResponse(
+                data: ['tasks' => $tasks],
+                message: __('Tasks retrieved successfully')
+            );
+        } catch (\Exception $e) {
+            Log::error('Failed to retrieve project tasks', [
+                'project_id' => $project->id,
+                'user_id' => $request->user()?->id,
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTrace(),
+                'timestamp' => now()
+            ]);
+
+            return $this->errorResponse(
+                message: __('Failed to retrieve tasks.'),
+                statusCode: 500
+            );
+        }
     }
 
     /**
      * Store a newly created task for a project.
+     *
+     * @param TaskStoreRequest $request
+     * @param Project $project
+     * @return JsonResponse
      */
-    public function store(Request $request, Project $project)
+    public function store(TaskStoreRequest $request, Project $project): JsonResponse
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'due_date' => 'required|date|after:today',
-            'assigned_to' => 'required|exists:users,id',
-        ]);
+        try {
+            $taskData = CreateTaskData::fromRequest($request->validated(), $project->id);
+            $task = $this->taskService->createTask($taskData);
 
-        $task = Task::create([
-            'title' => $request->title,
-            'description' => $request->description,
-            'due_date' => $request->due_date,
-            'assigned_to' => $request->assigned_to,
-            'project_id' => $project->id,
-            'status' => 'pending',
-        ]);
+            // Send notification to assigned user
+            if ($task->assigned_to) {
+                $assignedUser = User::find($task->assigned_to);
+                if ($assignedUser) {
+                    $assignedUser->notify(new TaskAssignedNotification($task->load('project')));
+                }
+            }
 
-        // Send notification to assigned user
-        $assignedUser = User::find($request->assigned_to);
-        if ($assignedUser) {
-            $assignedUser->notify(new TaskAssignedNotification($task->load('project')));
+            Log::info('Task created successfully', [
+                'task_id' => $task->id,
+                'project_id' => $project->id,
+                'user_id' => $request->user()->id,
+                'assigned_to' => $task->assigned_to
+            ]);
+
+            return $this->successfulResponse(
+                data: ['task' => $task->load(['assignedUser', 'project', 'comments'])],
+                message: __('Task created successfully'),
+                statusCode: 201
+            );
+        } catch (\Exception $e) {
+            Log::error('Task creation failed', [
+                'project_id' => $project->id,
+                'user_id' => $request->user()->id,
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTrace(),
+                'timestamp' => now()
+            ]);
+
+            return $this->errorResponse(
+                message: __('Failed to create task. Please try again.'),
+                statusCode: 500
+            );
         }
-
-        return response()->json([
-            'message' => 'Task created successfully',
-            'task' => $task->load(['assignedUser', 'project', 'comments']),
-        ], 201);
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified task.
+     *
+     * @param Task $task
+     * @param Request $request
+     * @return JsonResponse
      */
-    public function show(Task $task)
+    public function show(Task $task, Request $request): JsonResponse
     {
-        return response()->json([
-            'task' => $task->load(['assignedUser', 'project', 'comments.user']),
-        ]);
-    }
+        try {
+            // Check if user can access this task
+            if (!$this->taskService->canUserAccessTask($request->user(), $task)) {
+                return $this->forbiddenResponse(__('Access denied to this task.'));
+            }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Task $task)
-    {
-        // Check if user is manager or assigned user
-        if ($request->user()->role !== 'manager' && $request->user()->id !== $task->assigned_to) {
-            return response()->json(['message' => 'Forbidden'], 403);
+            $taskData = $this->taskService->findTask($task->id);
+
+            return $this->successfulResponse(
+                data: ['task' => $taskData],
+                message: __('Task retrieved successfully')
+            );
+        } catch (\Exception $e) {
+            Log::error('Failed to retrieve task', [
+                'task_id' => $task->id,
+                'user_id' => $request->user()?->id,
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTrace(),
+                'timestamp' => now()
+            ]);
+
+            return $this->errorResponse(
+                message: __('Failed to retrieve task.'),
+                statusCode: 500
+            );
         }
-
-        $request->validate([
-            'title' => 'sometimes|required|string|max:255',
-            'description' => 'sometimes|required|string',
-            'status' => 'sometimes|required|in:pending,in-progress,done',
-            'due_date' => 'sometimes|required|date',
-            'assigned_to' => 'sometimes|required|exists:users,id',
-        ]);
-
-        $task->update($request->only(['title', 'description', 'status', 'due_date', 'assigned_to']));
-
-        return response()->json([
-            'message' => 'Task updated successfully',
-            'task' => $task->load(['assignedUser', 'project', 'comments']),
-        ]);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Update the specified task.
+     *
+     * @param TaskUpdateRequest $request
+     * @param Task $task
+     * @return JsonResponse
      */
-    public function destroy(Task $task)
+    public function update(TaskUpdateRequest $request, Task $task): JsonResponse
     {
-        $task->delete();
+        try {
+            // Check if user can modify this task
+            if (!$this->taskService->canUserModifyTask($request->user(), $task)) {
+                return $this->forbiddenResponse(__('You are not authorized to update this task.'));
+            }
 
-        return response()->json([
-            'message' => 'Task deleted successfully',
-        ]);
+            $updateData = UpdateTaskData::fromRequest($request->validated());
+            $this->taskService->updateTask($task, $updateData);
+
+            Log::info('Task updated successfully', [
+                'task_id' => $task->id,
+                'user_id' => $request->user()->id,
+                'changes' => $request->validated()
+            ]);
+
+            return $this->successfulResponse(
+                data: ['task' => $task->fresh()->load(['assignedUser', 'project', 'comments'])],
+                message: __('Task updated successfully')
+            );
+        } catch (\Exception $e) {
+            Log::error('Task update failed', [
+                'task_id' => $task->id,
+                'user_id' => $request->user()->id,
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTrace(),
+                'timestamp' => now()
+            ]);
+
+            return $this->errorResponse(
+                message: __('Task update failed. Please try again.'),
+                statusCode: 500
+            );
+        }
+    }
+
+    /**
+     * Remove the specified task.
+     *
+     * @param Task $task
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function destroy(Task $task, Request $request): JsonResponse
+    {
+        try {
+            // Check if user can modify this task
+            if (!$this->taskService->canUserModifyTask($request->user(), $task)) {
+                return $this->forbiddenResponse(__('You are not authorized to delete this task.'));
+            }
+
+            $this->taskService->deleteTask($task);
+
+            Log::info('Task deleted successfully', [
+                'task_id' => $task->id,
+                'user_id' => $request->user()->id,
+                'title' => $task->title
+            ]);
+
+            return $this->successfulResponse(
+                message: __('Task deleted successfully')
+            );
+        } catch (\Exception $e) {
+            Log::error('Task deletion failed', [
+                'task_id' => $task->id,
+                'user_id' => $request->user()->id,
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTrace(),
+                'timestamp' => now()
+            ]);
+
+            return $this->errorResponse(
+                message: __('Task deletion failed. Please try again.'),
+                statusCode: 500
+            );
+        }
     }
 }

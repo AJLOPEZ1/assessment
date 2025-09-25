@@ -44,7 +44,7 @@ class CommentService
 
         if (!empty($filters['search'])) {
             $search = $filters['search'];
-            $query->where('content', 'like', "%{$search}%");
+            $query->where('body', 'like', "%{$search}%");
         }
 
         return $query->orderBy('created_at', 'desc')->get();
@@ -93,12 +93,12 @@ class CommentService
      * Update comment
      *
      * @param Comment $comment
-     * @param string $content
+     * @param string $body
      * @return bool
      */
-    public function updateComment(Comment $comment, string $content): bool
+    public function updateComment(Comment $comment, string $body): bool
     {
-        return $comment->update(['content' => $content]);
+        return $comment->update(['body' => $body]);
     }
 
     /**
@@ -223,7 +223,7 @@ class CommentService
     }
 
     /**
-     * Search comments by content
+     * Search comments by body content
      *
      * @param string $query
      * @param int $limit
@@ -231,7 +231,7 @@ class CommentService
      */
     public function searchComments(string $query, int $limit = 10): Collection
     {
-        return Comment::where('content', 'like', "%{$query}%")
+        return Comment::where('body', 'like', "%{$query}%")
             ->with(['user', 'task.project'])
             ->orderBy('created_at', 'desc')
             ->limit($limit)
