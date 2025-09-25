@@ -219,7 +219,3 @@ php artisan queue:retry all
 3. Write tests for new functionality
 4. Ensure all tests pass
 5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License.
