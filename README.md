@@ -112,7 +112,7 @@ The application comes with pre-seeded test data:
 
 ### API Documentation
 
-https://doba-dot.postman.co/workspace/My-Workspace~7f9804e3-714a-46cb-8228-8b98ccb3e966/collection/12873571-c5ffb93e-52ee-4838-bcf8-c34ba99ca329?action=share&creator=12873571
+https://doba-dot.postman.co/workspace/My-Workspace~7f9804e3-714a-46cb-8228-8b98ccb3e966/collection/12873571-6030fd6e-cff0-4560-a01e-714b4ee3b8a2?action=share&creator=12873571
 
 ### Admin
 - Full project management (CRUD)
